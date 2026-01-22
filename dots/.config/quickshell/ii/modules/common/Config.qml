@@ -82,7 +82,7 @@ Singleton {
 
             property JsonObject policies: JsonObject {
                 property int ai: 1 // 0: No | 1: Yes | 2: Local
-                property int weeb: 1 // 0: No | 1: Open | 2: Closet
+                property int weeb: 0 // 0: No | 1: Open | 2: Closet
             }
 
             property JsonObject ai: JsonObject {
@@ -234,7 +234,7 @@ Singleton {
                     }
                 }
                 property bool bottom: false // Instead of top
-                property int cornerStyle: 0 // 0: Hug | 1: Float | 2: Plain rectangle
+                property int cornerStyle: 1 // 0: Hug | 1: Float | 2: Plain rectangle
                 property bool floatStyleShadow: true // Show shadow behind bar when cornerStyle == 1 (Float)
                 property bool borderless: false // true for no grouping of items
                 property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
@@ -271,7 +271,7 @@ Singleton {
                     property bool enable: false
                     property bool enableGPS: true // gps based location
                     property string city: "" // When 'enableGPS' is false
-                    property bool useUSCS: false // Instead of metric (SI) units
+                    property bool useUSCS: true // Instead of metric (SI) units
                     property int fetchInterval: 10 // minutes
                 }
                 property JsonObject indicators: JsonObject {
@@ -288,7 +288,7 @@ Singleton {
                 property int low: 20
                 property int critical: 5
                 property int full: 101
-                property bool automaticSuspend: true
+                property bool automaticSuspend: false
                 property int suspend: 3
             }
 
@@ -356,7 +356,7 @@ Singleton {
             }
 
             property JsonObject launcher: JsonObject {
-                property list<string> pinnedApps: [ "org.kde.dolphin", "kitty", "cmake-gui"]
+                property list<string> pinnedApps: [ "org.kde.dolphin", "kitty"]
             }
 
             property JsonObject light: JsonObject {
@@ -494,7 +494,7 @@ Singleton {
             property JsonObject sidebar: JsonObject {
                 property bool keepRightSidebarLoaded: true
                 property JsonObject translator: JsonObject {
-                    property bool enable: false
+                    property bool enable: true
                     property int delay: 300 // Delay before sending request. Reduces (potential) rate limits and lag.
                 }
                 property JsonObject ai: JsonObject {
@@ -536,8 +536,8 @@ Singleton {
                 }
 
                 property JsonObject quickSliders: JsonObject {
-                    property bool enable: false
-                    property bool showMic: false
+                    property bool enable: true
+                    property bool showMic: true
                     property bool showVolume: true
                     property bool showBrightness: true
                 }
@@ -597,7 +597,7 @@ Singleton {
                     property bool clipboard: false
                 }
                 property JsonObject triggerCondition: JsonObject {
-                    property list<string> networkNameKeywords: ["airport", "cafe", "college", "company", "eduroam", "free", "guest", "public", "school", "university"]
+                    property list<string> networkNameKeywords: ["airport", "cafe", "college", "company", "eduroam", "free", "guest", "public", "school", "university", "students", "employee"]
                     property list<string> fileKeywords: ["anime", "booru", "ecchi", "hentai", "yande.re", "konachan", "breast", "nipples", "pussy", "nsfw", "spoiler", "girl"]
                     property list<string> linkKeywords: ["hentai", "porn", "sukebei", "hitomi.la", "rule34", "gelbooru", "fanbox", "dlsite"]
                 }
