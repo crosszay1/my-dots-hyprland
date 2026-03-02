@@ -78,7 +78,7 @@ install-local-pkgbuild() {
   x pushd $location
 
   source ./PKGBUILD
-  x yay -S --sudoloop $installflags --asdeps "${depends[@]}"
+  x yay -S --sudoloop $installflags --asdeps "${depends[@]}" #This is where we install packages like cava.
   # man makepkg:
   # -A, --ignorearch: Ignore a missing or incomplete arch field in the build script.
   # -s, --syncdeps: Install missing dependencies using pacman. When build-time or run-time dependencies are not found, pacman will try to resolve them.
