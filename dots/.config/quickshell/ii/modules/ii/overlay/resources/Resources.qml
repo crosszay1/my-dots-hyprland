@@ -15,100 +15,9 @@ StyledOverlayWidget {
     id: root
     minimumWidth: 300
     minimumHeight: 300
-    function buildIGpuProperties() {
-        const cfg = Config.options?.resources?.gpu?.overlay?.iGpu
-        let props = []
+ 
 
-        if (cfg?.showUsage !== false) {
-            props.push({
-                icon: "bolt",
-                label: Translation.tr("Load:"),
-                value:  `${Math.round(GpuUsage.iGpuUsage * 100)} %`
-            })
-        }
 
-        if (cfg?.showVram !== false) {
-            props.push({
-                icon: "clock_loader_60",
-                label: Translation.tr("VRAM:"),
-                value: ` ${Math.round(GpuUsage.iGpuVramUsedGB * 10) / 10} / ${Math.round(GpuUsage.iGpuVramTotalGB * 10) / 10} GB`
-            })
-        }
-
-        if (cfg?.showTemp !== false) {
-            props.push({
-                icon: "thermometer",
-                label: Translation.tr("Temp:"),
-                value: `${GpuUsage.iGpuTemperature} °C`
-            })
-        }
-
-        return props
-    }
-
-    function buildDGpuProperties() {
-        const cfg = Config.options?.resources?.gpu?.overlay?.dGpu
-        let props = []
-
-        if (cfg?.showUsage !== false) {
-            props.push({
-                icon: "bolt",
-                label: Translation.tr("Load:"),
-                value: ` ${Math.round(GpuUsage.dGpuUsage * 100)} %`
-            })
-        }
-
-        if (cfg?.showVram !== false) {
-            props.push({
-                icon: "clock_loader_60",
-                label: Translation.tr("VRAM:"),
-                value: ` ${Math.round(GpuUsage.dGpuVramUsedGB * 10) / 10} / ${Math.round(GpuUsage.dGpuVramTotalGB * 10) / 10} GB`
-            })
-        }
-
-        if (cfg?.showTemp !== false) {
-            props.push({
-                icon: "thermometer",
-                label: Translation.tr("Temp:"),
-                value: `${GpuUsage.dGpuTemperature} °C`
-            })
-        }
-
-        if (cfg?.showTempJunction === true && GpuUsage.dGpuTempJunction > 0) {
-            props.push({
-                icon: "thermometer",
-                label: Translation.tr("Junction:"),
-                value: `${GpuUsage.dGpuTempJunction} °C`
-            })
-        }
-
-        if (GpuUsage.dGpuTempMem > 0) {
-            props.push({
-                icon: "thermometer",
-                label: Translation.tr("Mem Temp:"),
-                value: `${GpuUsage.dGpuTempMem} °C`
-            })
-        }
-
-        if (cfg?.showFan !== false) {
-            props.push({
-                icon: "air",
-                label: Translation.tr("Fan:"),
-                value: GpuUsage.dGpuVendor === "nvidia" ? `${GpuUsage.dGpuFanUsage} %` :
-                       GpuUsage.dGpuFanRpm > 0 ? `${GpuUsage.dGpuFanRpm} RPM` : "0"
-            })
-        }
-
-        if (cfg?.showPower !== false) {
-            props.push({
-                icon: "power",
-                label: Translation.tr("Power:"),
-                value: `${GpuUsage.dGpuPower} W / ${GpuUsage.dGpuPowerLimit} W`
-            })
-        }
-
-        return props
-    }
 
 
     property list<var> resources: [
@@ -186,30 +95,6 @@ StyledOverlayWidget {
             ]
             
         },
-        {
-            icon: "empty_dashboard",
-            name: Translation.tr("IGPU"),
-            history: (Config.options?.resources?.enableGpu !== false) ? GpuUsage.iGpuUsageHistory : [],
-            maxAvailableString: GpuUsage.maxAvailableIGpuString,
-            available: (Config.options?.resources?.enableGpu === false && Config.options?.resources?.gpu?.overlay?.showIGpu !== false) ||
-                       (GpuUsage.iGpuAvailable && (Config.options?.resources?.gpu?.overlay?.showIGpu !== false)),
-            disabled: Config.options?.resources?.enableGpu === false,
-            extraProperties: (Config.options?.resources?.enableGpu === false) ?
-                [{icon: "block", label: "", value: Translation.tr("GPU monitoring is disabled")}] :
-                root.buildIGpuProperties()
-        },
-        {
-            icon: "empty_dashboard",
-            name: Translation.tr("DGPU"),
-            history: (Config.options?.resources?.enableGpu !== false) ? GpuUsage.dGpuUsageHistory : [],
-            maxAvailableString: GpuUsage.maxAvailableDGpuString,
-            available: (Config.options?.resources?.enableGpu === false && Config.options?.resources?.gpu?.overlay?.showDGpu !== false) ||
-                       (GpuUsage.dGpuAvailable && (Config.options?.resources?.gpu?.overlay?.showDGpu !== false)),
-            disabled: Config.options?.resources?.enableGpu === false,
-            extraProperties: (Config.options?.resources?.enableGpu === false) ?
-                [{icon: "block", label: "", value: Translation.tr("GPU monitoring is disabled")}] :
-                root.buildDGpuProperties()
-        }
     ].filter(r => r.available) 
 
     contentItem: OverlayBackground {
