@@ -73,8 +73,9 @@ Scope {
             visible: GlobalStates.overviewOpen
             anchors {
                 horizontalCenter: parent.horizontalCenter
-                top: parent.top
-            }
+                bottom: parent.bottom
+                bottomMargin: 8   //can adjust to move it up from the bottom
+                }
             spacing: -8
 
             Keys.onPressed: event => {
