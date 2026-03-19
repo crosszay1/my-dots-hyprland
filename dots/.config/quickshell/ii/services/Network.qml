@@ -35,23 +35,23 @@ Singleton {
     property string networkName: ""
     property int networkStrength
     property string materialSymbol: root.ethernet
-    ? "lan"
-    : (root.wifi && root.networkName !== "")
-    ? (
-        Network.networkStrength > 83 ? "signal_wifi_4_bar" :
-        Network.networkStrength > 67 ? "network_wifi" :
-        Network.networkStrength > 50 ? "network_wifi_3_bar" :
-        Network.networkStrength > 33 ? "network_wifi_2_bar" :
-        Network.networkStrength > 17 ? "network_wifi_1_bar" :
-        "signal_wifi_0_bar"
-    )
-    : (root.wifiStatus === "connecting")
-    ? "signal_wifi_statusbar_not_connected"
-    : (root.wifiStatus === "disconnected")
-    ? "wifi_find"
-    : (root.wifiStatus === "disabled")
-    ? "signal_wifi_off"
-    : "signal_wifi_bad"
+        ? "lan"
+        : (root.wifiEnabled && root.wifiStatus === "connected")
+            ? (
+                (root.active?.strength ?? 0) > 83 ? "signal_wifi_4_bar" :
+                (root.active?.strength ?? 0) > 67 ? "network_wifi" :
+                (root.active?.strength ?? 0) > 50 ? "network_wifi_3_bar" :
+                (root.active?.strength ?? 0) > 33 ? "network_wifi_2_bar" :
+                (root.active?.strength ?? 0) > 17 ? "network_wifi_1_bar" :
+                "signal_wifi_0_bar"
+            )
+            : (root.wifiStatus === "connecting")
+                ? "signal_wifi_statusbar_not_connected"
+                : (root.wifiStatus === "disconnected")
+                    ? "wifi_find"
+                    : (root.wifiStatus === "disabled")
+                        ? "signal_wifi_off"
+                        : "signal_wifi_bad"
 
     // Control
     function enableWifi(enabled = true): void {
