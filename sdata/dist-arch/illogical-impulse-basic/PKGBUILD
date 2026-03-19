@@ -17,4 +17,7 @@ depends=(
   # Used in install script
   rsync
   go-yq # https://github.com/mikefarah/yq
+  #Everything after this is things added by me (crosszay) as custom dependencies
+  zoxide
+  spotify-player
 )
