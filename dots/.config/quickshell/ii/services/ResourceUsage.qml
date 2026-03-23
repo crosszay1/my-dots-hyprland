@@ -73,7 +73,6 @@ Singleton {
         onTriggered: {
             fileMeminfo.reload()
             fileStat.reload()
-            fileCpuinfo.reload()
 
             // Memory + Swap
             const textMeminfo = fileMeminfo.text()
@@ -100,17 +99,8 @@ Singleton {
                 previousCpuStats = { total, idle }
             }
 
-            // CPU frequency (average of cores)
-            const cpuInfo = fileCpuinfo.text()
-            const matches = cpuInfo.match(/cpu MHz\s+:\s+(\d+\.\d+)/g) ?? []
-
-            if (matches.length > 0) {
-                const freqs = matches.map(x =>
-                    Number(x.match(/\d+\.\d+/)[0])
-                )
-                const avg = freqs.reduce((a, b) => a + b, 0) / freqs.length
-                cpuFrequency = avg / 1000
-            }
+            // CPU frequency (average across cores)
+            cpuFreqProc.running = true
 
             // Refresh temp file
             tempProc.running = true
@@ -122,7 +112,22 @@ Singleton {
 
     FileView { id: fileMeminfo; path: "/proc/meminfo" }
     FileView { id: fileStat; path: "/proc/stat" }
-    FileView { id: fileCpuinfo; path: "/proc/cpuinfo" }
+
+    Process {
+        id: cpuFreqProc
+        environment: ({
+            LANG: "C",
+            LC_ALL: "C"
+        })
+        command: ["bash", "-c", "grep 'cpu MHz' /proc/cpuinfo | awk '{sum+=$4} END {if (NR > 0) print sum/NR}'"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const val = parseFloat(this.text.trim())
+                if (!isNaN(val))
+                    cpuFrequency = val / 1000 // GHz
+            }
+        }
+    }
 
     // Get CPU max frequency once
     Process {
