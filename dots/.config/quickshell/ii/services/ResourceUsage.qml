@@ -102,11 +102,11 @@ Singleton {
 
             // CPU frequency (average of cores)
             const cpuInfo = fileCpuinfo.text()
-            const matches = cpuInfo.match(/cpu MHz\s+:\s+(\d+\.\d+)/g) ?? []
+            const matches = cpuInfo.match(/cpu MHz\s*:\s*(\d+(?:\.\d+)?)/g) ?? []
 
             if (matches.length > 0) {
                 const freqs = matches.map(x =>
-                    Number(x.match(/\d+\.\d+/)[0])
+                    Number(x.match(/\d+(?:\.\d+)?/)[0])
                 )
                 const avg = freqs.reduce((a, b) => a + b, 0) / freqs.length
                 cpuFrequency = avg / 1000
