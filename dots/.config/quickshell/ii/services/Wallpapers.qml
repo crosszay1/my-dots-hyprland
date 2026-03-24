@@ -72,6 +72,15 @@ Singleton {
         root.changed()
     }
 
+    function applyTerminalCommand(command, darkMode = Appearance.m3colors.darkmode) {
+        applyProc.exec([
+            Directories.wallpaperSwitchScriptPath,
+            "--terminal-command", command,
+            "--mode", (darkMode ? "dark" : "light")
+        ])
+        root.changed()
+    }
+
     Process {
         id: selectProc
         property string filePath: ""

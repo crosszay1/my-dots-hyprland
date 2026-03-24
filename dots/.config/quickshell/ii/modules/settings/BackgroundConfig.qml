@@ -8,6 +8,53 @@ ContentPage {
     forceWidth: true
 
     ContentSection {
+        icon: "terminal"
+        title: Translation.tr("Terminal wallpaper")
+
+        StyledText {
+            Layout.fillWidth: true
+            wrapMode: Text.Wrap
+            text: Translation.tr("Run a terminal command as wallpaper (e.g. cava). The command runs in a pinned fullscreen terminal window.")
+            font.pixelSize: Appearance.font.pixelSize.small
+            opacity: 0.7
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: 8
+
+            MaterialTextField {
+                id: terminalCommandField
+                Layout.fillWidth: true
+                placeholderText: Translation.tr("Command (e.g. cava)")
+                text: Config.options.background.terminalCommand
+                onAccepted: {
+                    Wallpapers.applyTerminalCommand(text)
+                }
+            }
+
+            RippleButtonWithIcon {
+                materialIcon: "play_arrow"
+                mainText: Translation.tr("Apply")
+                buttonRadius: Appearance.rounding.small
+                onClicked: {
+                    Wallpapers.applyTerminalCommand(terminalCommandField.text)
+                }
+            }
+
+            RippleButtonWithIcon {
+                materialIcon: "close"
+                mainText: Translation.tr("Clear")
+                buttonRadius: Appearance.rounding.small
+                onClicked: {
+                    terminalCommandField.text = ""
+                    Wallpapers.applyTerminalCommand("")
+                }
+            }
+        }
+    }
+
+    ContentSection {
         icon: "sync_alt"
         title: Translation.tr("Parallax")
 
