@@ -20,4 +20,5 @@ depends=(
   #Everything after this is things added by me (crosszay) as custom dependencies
   zoxide
   spotify-player
+  flameshot
 )
