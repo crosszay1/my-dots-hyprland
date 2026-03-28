@@ -170,11 +170,37 @@ Item {
             }    
         }
 
-        LanguageSelectorButton { // Source language button
-            id: sourceLanguageButton
-            displayText: root.sourceLanguage
-            onClicked: {
-                root.showLanguageSelectorDialog(false);
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: root.padding
+
+            LanguageSelectorButton { // Source language button
+                id: sourceLanguageButton
+                Layout.fillWidth: true
+                displayText: root.sourceLanguage
+                onClicked: {
+                    root.showLanguageSelectorDialog(false);
+                }
+            }
+
+            RippleButton { // Flip button – swaps source and target languages
+                id: flipButton
+                implicitWidth: implicitHeight
+                colBackground: Appearance.colors.colLayer2
+                buttonRadius: Appearance.rounding.small
+                contentItem: MaterialSymbol {
+                    anchors.centerIn: parent
+                    horizontalAlignment: Text.AlignHCenter
+                    iconSize: Appearance.font.pixelSize.larger
+                    text: "swap_vert"
+                    color: Appearance.colors.colOnLayer2
+                }
+                onClicked: {
+                    [root.sourceLanguage, root.targetLanguage] = [root.targetLanguage, root.sourceLanguage];
+                    Config.options.language.translator.sourceLanguage = root.sourceLanguage;
+                    Config.options.language.translator.targetLanguage = root.targetLanguage;
+                    translateTimer.restart();
+                }
             }
         }
 
