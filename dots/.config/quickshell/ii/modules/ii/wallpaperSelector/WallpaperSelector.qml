@@ -28,17 +28,18 @@ Scope {
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
             color: "transparent"
 
-            anchors.top: true
+            anchors.bottom: true
+            anchors.left: true
+            anchors.right: true
             margins {
-                top: Config?.options.bar.vertical ? Appearance.sizes.hyprlandGapsOut : Appearance.sizes.barHeight + Appearance.sizes.hyprlandGapsOut
+                bottom: Appearance.sizes.hyprlandGapsOut
             }
 
             mask: Region {
                 item: content
             }
 
-            implicitHeight: Appearance.sizes.wallpaperSelectorHeight
-            implicitWidth: Appearance.sizes.wallpaperSelectorWidth
+            implicitHeight: 290
 
             Component.onCompleted: {
                 GlobalFocusGrab.addDismissable(panelWindow);
