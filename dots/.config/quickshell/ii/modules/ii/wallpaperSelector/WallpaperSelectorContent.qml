@@ -55,9 +55,8 @@ Item {
         } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
             const fp = Wallpapers.folderModel.get(carousel.currentIndex, "filePath");
             const isDir = Wallpapers.folderModel.get(carousel.currentIndex, "fileIsDir");
-            if (fp) {
-                if (isDir) Wallpapers.setDirectory(fp);
-                else root.selectWallpaperPath(fp);
+            if (fp && !isDir) {
+                root.selectWallpaperPath(fp);
             }
             event.accepted = true;
         } else if (event.key === Qt.Key_Backspace) {
@@ -133,64 +132,7 @@ Item {
                         color: Appearance.colors.colOnLayer1
                     }
 
-                    // Quick-access folder chips
-                    ListView {
-                        id: chipList
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        orientation: ListView.Horizontal
-                        clip: true
-                        spacing: 6
-                        ScrollBar.horizontal: StyledScrollBar { policy: ScrollBar.AlwaysOff }
-                        model: [
-                            { icon: "wallpaper", name: Translation.tr("Wallpapers"), path: `${Directories.pictures}/Wallpapers` },
-                            { icon: "image",     name: Translation.tr("Pictures"),   path: Directories.pictures },
-                            { icon: "download",  name: Translation.tr("Downloads"),  path: Directories.downloads },
-                            { icon: "home",      name: Translation.tr("Home"),       path: Directories.home },
-                        ].concat(Config.options.policies.weeb === 1
-                            ? [{ icon: "favorite", name: Translation.tr("Homework"), path: `${Directories.pictures}/homework` }]
-                            : [])
-                        delegate: Rectangle {
-                            id: chip
-                            required property var modelData
-                            property bool active: Wallpapers.directory === Qt.resolvedUrl(modelData.path)
-                            width: chipRow.implicitWidth + 20
-                            height: chipList.height
-                            radius: height / 2
-                            color: active
-                                ? Appearance.colors.colPrimary
-                                : chipMouse.containsMouse
-                                    ? Appearance.colors.colLayer2Hover
-                                    : Appearance.colors.colLayer2
-                            Behavior on color {
-                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-                            }
-                            MouseArea {
-                                id: chipMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: Wallpapers.setDirectory(chip.modelData.path)
-                            }
-                            Row {
-                                id: chipRow
-                                anchors.centerIn: parent
-                                spacing: 4
-                                MaterialSymbol {
-                                    text: chip.modelData.icon
-                                    iconSize: Appearance.font.pixelSize.small
-                                    color: chip.active ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer2
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                                StyledText {
-                                    text: chip.modelData.name
-                                    font.pixelSize: Appearance.font.pixelSize.smaller
-                                    color: chip.active ? Appearance.colors.colOnPrimary : Appearance.colors.colOnLayer2
-                                    anchors.verticalCenter: parent.verticalCenter
-                                }
-                            }
-                        }
-                    }
+                    Item { Layout.fillWidth: true }
 
                     // Search field
                     ToolbarTextField {
@@ -324,25 +266,24 @@ Item {
 
                         // Outer item occupies full carousel height so the
                         // centred card can scale up without clipping siblings.
-                        width:  root.itemWidth
+                        width:  isDir ? 0 : root.itemWidth
+                        visible: !isDir
                         height: carousel.height - 16
 
                         // ── Scale / opacity animation ─────────────────────────
                         property real cardScale:   isCurrent ? root.selectedScale : root.normalScale
-                        property real cardOpacity: isCurrent ? 1.0 : (isApplied ? 0.80 : 0.55)
+                        property real cardOpacity: isCurrent ? 1.0 : (cardMouseArea.containsMouse ? 0.75 : (isApplied ? 0.72 : 0.52))
 
                         Behavior on cardScale {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMoveFast.duration
-                                easing.type: Appearance.animation.elementMoveFast.type
-                                easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+                                duration: 100
+                                easing.type: Easing.OutCubic
                             }
                         }
                         Behavior on cardOpacity {
                             NumberAnimation {
-                                duration: Appearance.animation.elementMoveFast.duration
-                                easing.type: Appearance.animation.elementMoveFast.type
-                                easing.bezierCurve: Appearance.animation.elementMoveFast.bezierCurve
+                                duration: 100
+                                easing.type: Easing.OutCubic
                             }
                         }
 
@@ -357,15 +298,16 @@ Item {
                             opacity: card.cardOpacity
                             z: card.isCurrent ? 2 : 1
 
-                            color: card.isCurrent  ? Appearance.colors.colPrimaryContainer
-                                 : card.isApplied  ? Appearance.colors.colSecondaryContainer
-                                 :                   Appearance.colors.colLayer1
+                            color: card.isCurrent            ? Appearance.colors.colPrimaryContainer
+                                 : cardMouseArea.containsMouse  ? Appearance.colors.colLayer2Hover
+                                 : card.isApplied               ? Appearance.colors.colSecondaryContainer
+                                 :                                Appearance.colors.colLayer1
                             border.width: card.isCurrent ? 2 : (card.isApplied ? 1 : 0)
                             border.color: card.isCurrent ? Appearance.colors.colPrimary
                                         :                  Appearance.colors.colSecondaryContainer
 
                             Behavior on color {
-                                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                                ColorAnimation { duration: 100; easing.type: Easing.OutCubic }
                             }
 
                             // Glow halo on selected card
@@ -505,7 +447,7 @@ Item {
                                          :                   Appearance.colors.colOnLayer1
                                     text: card.modelData.fileName
                                     Behavior on color {
-                                        animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+                                        ColorAnimation { duration: 100; easing.type: Easing.OutCubic }
                                     }
                                 }
                             }
@@ -513,16 +455,15 @@ Item {
 
                         // ── Interaction ────────────────────────────────────────
                         MouseArea {
+                            id: cardMouseArea
                             anchors.centerIn: parent
                             width:  cardRect.width  * cardRect.scale
                             height: cardRect.height * cardRect.scale
                             hoverEnabled: true
                             cursorShape:  Qt.PointingHandCursor
-                            onEntered: carousel.currentIndex = card.index
                             onClicked: {
-                                if (card.isDir)
-                                    Wallpapers.setDirectory(card.modelData.filePath);
-                                else
+                                carousel.currentIndex = card.index;
+                                if (!card.isDir)
                                     root.selectWallpaperPath(card.modelData.filePath);
                             }
                         }
@@ -550,6 +491,7 @@ Item {
         target: GlobalStates
         function onWallpaperSelectorOpenChanged() {
             if (GlobalStates.wallpaperSelectorOpen) {
+                Wallpapers.setDirectory(`${Directories.pictures}/Wallpapers`);
                 panelBg.forceActiveFocus();
                 Qt.callLater(root.scrollToCurrentWallpaper);
             }
