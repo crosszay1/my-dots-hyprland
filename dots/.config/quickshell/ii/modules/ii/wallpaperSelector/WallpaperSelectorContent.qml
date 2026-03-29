@@ -59,6 +59,9 @@ Item {
                 root.selectWallpaperPath(fp);
             }
             event.accepted = true;
+        } else if (event.key === Qt.Key_Slash) {
+            searchField.forceActiveFocus();
+            event.accepted = true;
         } else if (event.key === Qt.Key_Backspace) {
             searchField.text = searchField.text.slice(0, -1);
             searchField.forceActiveFocus();
