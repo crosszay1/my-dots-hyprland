@@ -29,8 +29,6 @@ Scope {
             color: "transparent"
 
             anchors.bottom: true
-            anchors.left: true
-            anchors.right: true
             margins {
                 bottom: Appearance.sizes.hyprlandGapsOut
             }
@@ -39,6 +37,8 @@ Scope {
                 item: content
             }
 
+            // Wide enough for the selected card + one card on each side (~3 visible)
+            implicitWidth: 760
             implicitHeight: 290
 
             Component.onCompleted: {

@@ -220,6 +220,7 @@ Item {
                     preferredHighlightBegin: width  / 2 - root.itemWidth / 2
                     preferredHighlightEnd:   width  / 2 + root.itemWidth / 2
                     snapMode: ListView.SnapToItem
+                    highlightMoveDuration: 80
 
                     cacheBuffer: root.itemWidth * 5
                     spacing: 12
