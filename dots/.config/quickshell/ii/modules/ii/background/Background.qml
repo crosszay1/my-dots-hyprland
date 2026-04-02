@@ -25,7 +25,6 @@ Scope {
 
     property list<real> visualizerPoints: Array.from({length: 50}, () => 0)
 
-    // Helper function to check if a specific monitor is showing background/visualizer
     function isMonitorShowingBackground(monitor) {
         if (!monitor || !monitor.activeWorkspace) return true;
 
@@ -33,11 +32,11 @@ Scope {
         let hasFullscreen = false;
 
         HyprlandData.windowList.forEach(win => {
-            const winWsId = win.workspace?.id ?? win.workspace; 
+            const winWsId = win.workspace?.id ?? win.workspace;
             if (win.monitor == monitor.id && winWsId == monitor.activeWorkspace.id) {
                 const isMax = (win.maximized || win.wayland?.maximized);
                 const isFS = (win.fullscreen || win.wayland?.fullscreen);
-                
+
                 if (win.floating === false || isMax || isFS) {
                     coveringCount++;
                     if (isFS) hasFullscreen = true;
@@ -60,7 +59,6 @@ Scope {
             const monitor = Hyprland.monitorFor(screen);
             if (!monitor) return false;
 
-            // If screen is locked, check if visualizer is allowed on lockscreen
             if (GlobalStates.screenLocked) {
                 return Config?.options?.background?.widgets?.visualizer?.showWhenLocked ?? true;
             }
@@ -69,12 +67,10 @@ Scope {
         });
     }
 
-    // Cava process
     Process {
         id: cavaProc
         running: (Config?.options?.background?.widgets?.visualizer?.enable ?? false) && root.isVisualizerNeeded && enableAnimations.value
         onRunningChanged: {
-            // Reset bars to zero when cava stops
             if (!cavaProc.running)
                 root.visualizerPoints = Array.from({length: 50}, () => 0);
         }
@@ -93,7 +89,6 @@ Scope {
         key: "animations:enabled"
     }
 
-    // Per-monitor windows
     Variants {
         id: screens
         model: Quickshell.screens
@@ -101,7 +96,6 @@ Scope {
         PanelWindow {
             id: bgRoot
 
-            // Per-monitor background visibility
             readonly property bool isBackgroundVisible: {
                 if (GlobalStates.screenLocked) return true;
                 return root.isMonitorShowingBackground(monitor);
@@ -109,18 +103,17 @@ Scope {
 
             required property var modelData
 
-            // Hide when fullscreen
             property list<HyprlandWorkspace> workspacesForMonitor: Hyprland.workspaces.values.filter(workspace => workspace.monitor && workspace.monitor.name == monitor.name)
             property var activeWorkspaceWithFullscreen: workspacesForMonitor.filter(workspace => ((workspace.toplevels.values.filter(window => window.wayland?.fullscreen)[0] != undefined) && workspace.active))[0]
             visible: GlobalStates.screenLocked || (!(activeWorkspaceWithFullscreen != undefined)) || !Config?.options.background.hideWhenFullscreen
 
-            // Workspaces
             property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
-            property list<var> relevantWindows: HyprlandData.windowList.filter(win => win.monitor == monitor?.id && win.workspace.id >= 0).sort((a, b) => a.workspace.id - b.workspace.id)
-            property int firstWorkspaceId: relevantWindows[0]?.workspace.id || 1
-            property int lastWorkspaceId: relevantWindows[relevantWindows.length - 1]?.workspace.id || 10
+            property list<var> relevantWindows: HyprlandData.windowList.filter(win => win.monitor == monitor?.id && (win.workspace?.id ?? win.workspace) >= 0).sort((a, b) => ((a.workspace?.id ?? a.workspace) - (b.workspace?.id ?? b.workspace)))
+            property int firstWorkspaceId: relevantWindows.length > 0 ? ((relevantWindows[0].workspace?.id ?? relevantWindows[0].workspace) || 1) : 1
+            property int lastWorkspaceId: relevantWindows.length > 0 ? ((relevantWindows[relevantWindows.length - 1].workspace?.id ?? relevantWindows[relevantWindows.length - 1].workspace) || 10) : 10
+            property int workspaceChunkSize: Config?.options.bar.workspaces.shown ?? 10
+            property int totalWorkspaces: Math.ceil(lastWorkspaceId / workspaceChunkSize) * workspaceChunkSize
 
-            // Wallpaper
             property bool wallpaperIsVideo: Config.options.background.wallpaperPath.endsWith(".mp4") || Config.options.background.wallpaperPath.endsWith(".webm") || Config.options.background.wallpaperPath.endsWith(".mkv") || Config.options.background.wallpaperPath.endsWith(".avi") || Config.options.background.wallpaperPath.endsWith(".mov")
             property string wallpaperPath: wallpaperIsVideo ? Config.options.background.thumbnailPath : Config.options.background.wallpaperPath
             property bool wallpaperSafetyTriggered: {
@@ -129,18 +122,19 @@ Scope {
                 const sensitiveNetwork = (CF.StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords));
                 return enabled && sensitiveWallpaper && sensitiveNetwork;
             }
-            property real wallpaperToScreenRatio: Math.min(wallpaperWidth / screen.width, wallpaperHeight / screen.height)
-            property real preferredWallpaperScale: Config.options.background.parallax.workspaceZoom
-            property real effectiveWallpaperScale: 1 // Some reasonable init value, to be updated
-            property int wallpaperWidth: modelData.width // Some reasonable init value, to be updated
-            property int wallpaperHeight: modelData.height // Some reasonable init value, to be updated
-            property real movableXSpace: ((wallpaperWidth / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.width) / 2
-            property real movableYSpace: ((wallpaperHeight / wallpaperToScreenRatio * effectiveWallpaperScale) - screen.height) / 2
+            readonly property real parallaxRation: 1.1
+            readonly property real additionalScaleFactor: Config.options.background.parallax.workspaceZoom
+            property real effectiveWallpaperScale: 1
+            property int wallpaperWidth: modelData.width
+            property int wallpaperHeight: modelData.height
+            property real scaledWallpaperWidth: wallpaperWidth * effectiveWallpaperScale
+            property real scaledWallpaperHeight: wallpaperHeight * effectiveWallpaperScale
+            property real parallaxTotalPixelsX: Math.max(0, scaledWallpaperWidth - screen.width)
+            property real parallaxTotalPixelsY: Math.max(0, scaledWallpaperHeight - screen.height)
             readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
 
-            // Colors
             property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
-            property color dominantColor: Appearance.colors.colPrimary // Default, to be changed
+            property color dominantColor: Appearance.colors.colPrimary
             property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
             property color colText: {
                 if (wallpaperSafetyTriggered)
@@ -151,7 +145,6 @@ Scope {
                 animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
             }
 
-            // Layer props
             screen: modelData
             exclusionMode: ExclusionMode.Ignore
             WlrLayershell.layer: (GlobalStates.screenLocked && !scaleAnim.running) ? WlrLayer.Overlay : WlrLayer.Bottom
@@ -173,10 +166,8 @@ Scope {
 
             onWallpaperPathChanged: {
                 bgRoot.updateZoomScale();
-                // Clock position gets updated after zoom scale is updated
             }
 
-            // Wallpaper zoom scale
             function updateZoomScale() {
                 getWallpaperSizeProc.path = bgRoot.wallpaperPath;
                 getWallpaperSizeProc.running = true;
@@ -194,13 +185,8 @@ Scope {
                         bgRoot.wallpaperWidth = width;
                         bgRoot.wallpaperHeight = height;
 
-                        if (width <= screenWidth || height <= screenHeight) {
-                            // Undersized/perfectly sized wallpapers
-                            bgRoot.effectiveWallpaperScale = Math.max(screenWidth / width, screenHeight / height);
-                        } else {
-                            // Oversized = can be zoomed for parallax, yay
-                            bgRoot.effectiveWallpaperScale = Math.min(bgRoot.preferredWallpaperScale, width / screenWidth, height / screenHeight);
-                        }
+                        const minSuitableScale = Math.max(screenWidth / width, screenHeight / height);
+                        bgRoot.effectiveWallpaperScale = minSuitableScale * bgRoot.additionalScaleFactor * bgRoot.parallaxRation;
                     }
                 }
             }
@@ -209,39 +195,54 @@ Scope {
                 anchors.fill: parent
                 clip: true
 
-                // Wallpaper
                 StyledImage {
                     id: wallpaper
                     visible: opacity > 0 && !blurLoader.active
                     opacity: (status === Image.Ready && !bgRoot.wallpaperIsVideo) ? 1 : 0
                     cache: false
                     smooth: false
-                    // Range = groups that workspaces span on
-                    property int chunkSize: Config?.options.bar.workspaces.shown ?? 10
-                    property int lower: Math.floor(bgRoot.firstWorkspaceId / chunkSize) * chunkSize
-                    property int upper: Math.ceil(bgRoot.lastWorkspaceId / chunkSize) * chunkSize
-                    property int range: upper - lower
-                    property real valueX: {
-                        let result = 0.5;
+
+                    property int workspaceIndex: (bgRoot.monitor.activeWorkspace?.id ?? 1) - 1
+                    property real middleFraction: 0.5
+                    property real fraction: {
+                        if (bgRoot.totalWorkspaces <= 1) {
+                            return middleFraction;
+                        }
+                        return Math.max(0, Math.min(1, workspaceIndex / (bgRoot.totalWorkspaces - 1)));
+                    }
+
+                    property real usedFractionX: {
+                        let usedFraction = middleFraction;
                         if (Config.options.background.parallax.enableWorkspace && !bgRoot.verticalParallax) {
-                            result = ((bgRoot.monitor.activeWorkspace?.id - lower) / range);
+                            usedFraction = fraction;
                         }
                         if (Config.options.background.parallax.enableSidebar) {
-                            result += (0.15 * GlobalStates.sidebarRightOpen - 0.15 * GlobalStates.sidebarLeftOpen);
+                            const sidebarFraction = bgRoot.parallaxRation / bgRoot.workspaceChunkSize / 2;
+                            usedFraction += (sidebarFraction * GlobalStates.sidebarRightOpen - sidebarFraction * GlobalStates.sidebarLeftOpen);
                         }
-                        return result;
+                        return Math.max(0, Math.min(1, usedFraction));
                     }
-                    property real valueY: {
-                        let result = 0.5;
+                    property real usedFractionY: {
+                        let usedFraction = middleFraction;
                         if (Config.options.background.parallax.enableWorkspace && bgRoot.verticalParallax) {
-                            result = ((bgRoot.monitor.activeWorkspace?.id - lower) / range);
+                            usedFraction = fraction;
                         }
-                        return result;
+                        return Math.max(0, Math.min(1, usedFraction));
                     }
-                    property real effectiveValueX: Math.max(0, Math.min(1, valueX))
-                    property real effectiveValueY: Math.max(0, Math.min(1, valueY))
-                    x: -(bgRoot.movableXSpace) - (effectiveValueX - 0.5) * 2 * bgRoot.movableXSpace
-                    y: -(bgRoot.movableYSpace) - (effectiveValueY - 0.5) * 2 * bgRoot.movableYSpace
+
+                    x: {
+                        if (bgRoot.screen.width > bgRoot.scaledWallpaperWidth) {
+                            return (bgRoot.screen.width - bgRoot.scaledWallpaperWidth) / 2;
+                        }
+                        return -bgRoot.parallaxTotalPixelsX * usedFractionX;
+                    }
+                    y: {
+                        if (bgRoot.screen.height > bgRoot.scaledWallpaperHeight) {
+                            return (bgRoot.screen.height - bgRoot.scaledWallpaperHeight) / 2;
+                        }
+                        return -bgRoot.parallaxTotalPixelsY * usedFractionY;
+                    }
+
                     source: bgRoot.wallpaperSafetyTriggered ? "" : bgRoot.wallpaperPath
                     fillMode: Image.PreserveAspectCrop
                     Behavior on x {
@@ -257,11 +258,11 @@ Scope {
                         }
                     }
                     sourceSize {
-                        width: bgRoot.screen.width * bgRoot.effectiveWallpaperScale * bgRoot.monitor.scale
-                        height: bgRoot.screen.height * bgRoot.effectiveWallpaperScale * bgRoot.monitor.scale
+                        width: bgRoot.scaledWallpaperWidth
+                        height: bgRoot.scaledWallpaperHeight
                     }
-                    width: bgRoot.wallpaperWidth / bgRoot.wallpaperToScreenRatio * bgRoot.effectiveWallpaperScale
-                    height: bgRoot.wallpaperHeight / bgRoot.wallpaperToScreenRatio * bgRoot.effectiveWallpaperScale
+                    width: bgRoot.scaledWallpaperWidth
+                    height: bgRoot.scaledWallpaperHeight
                 }
 
                 Loader {
@@ -293,33 +294,27 @@ Scope {
                 WidgetCanvas {
                     id: widgetCanvas
                     z: 1
-                    anchors {
-                        left: wallpaper.left
-                        right: wallpaper.right
-                        top: wallpaper.top
-                        bottom: wallpaper.bottom
-                        horizontalCenter: undefined
-                        verticalCenter: undefined
-                        readonly property real parallaxFactor: Config.options.background.parallax.widgetsFactor
-                        leftMargin: {
-                            const xOnWallpaper = bgRoot.movableXSpace;
-                            const extraMove = (wallpaper.effectiveValueX * 2 * bgRoot.movableXSpace) * (parallaxFactor - 1);
-                            return xOnWallpaper - extraMove;
-                        }
-                        topMargin: {
-                            const yOnWallpaper = bgRoot.movableYSpace;
-                            const extraMove = (wallpaper.effectiveValueY * 2 * bgRoot.movableYSpace) * (parallaxFactor - 1);
-                            return yOnWallpaper - extraMove;
-                        }
-                        Behavior on leftMargin {
-                            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
-                        }
-                        Behavior on topMargin {
-                            animation: Appearance.animation.elementMove.numberAnimation.createObject(this)
+                    readonly property real parallaxFactor: {
+                        var f = Config.options.background.parallax.widgetsFactor;
+                        return f / Config.options.background.parallax.workspaceZoom;
+                    }
+                    readonly property real baseWallpaperOffsetX: (bgRoot.screen.width - bgRoot.scaledWallpaperWidth) / 2
+                    readonly property real baseWallpaperOffsetY: (bgRoot.screen.height - bgRoot.scaledWallpaperHeight) / 2
+                    readonly property real wallpaperTotalOffsetX: wallpaper.x - baseWallpaperOffsetX
+                    readonly property real wallpaperTotalOffsetY: wallpaper.y - baseWallpaperOffsetY
+                    readonly property bool locked: GlobalStates.screenLocked
+                    x: wallpaperTotalOffsetX * parallaxFactor * !locked
+                    y: wallpaperTotalOffsetY * parallaxFactor * !locked
+
+                    transitions: Transition {
+                        PropertyAnimation {
+                            properties: "width,height"
+                            duration: Appearance.animation.elementMove.duration
+                            easing.type: Appearance.animation.elementMove.type
+                            easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
                         }
                     }
-                    width: wallpaper.width
-                    height: wallpaper.height
+
                     states: State {
                         name: "centered"
                         when: GlobalStates.screenLocked || bgRoot.wallpaperSafetyTriggered
@@ -340,19 +335,9 @@ Scope {
                             }
                         }
                     }
-                    transitions: Transition {
-                        PropertyAnimation {
-                            properties: "width,height"
-                            duration: Appearance.animation.elementMove.duration
-                            easing.type: Appearance.animation.elementMove.type
-                            easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
-                        }
-                        AnchorAnimation {
-                            duration: Appearance.animation.elementMove.duration
-                            easing.type: Appearance.animation.elementMove.type
-                            easing.bezierCurve: Appearance.animation.elementMove.bezierCurve
-                        }
-                    }
+
+                    width: wallpaper.width
+                    height: wallpaper.height
 
                     FadeLoader {
                         shown: Config.options.background.widgets.weather.enable
@@ -393,12 +378,9 @@ Scope {
                     shown: vizConfig?.enable && bgRoot.isBackgroundVisible && (!GlobalStates.screenLocked || vizConfig?.showWhenLocked)
 
                     sourceComponent: VisualizerWidget {
-                        anchors.fill: parent
-
                         points: root.visualizerPoints
                         primaryColor: Appearance.colors.colPrimary
                         shown: visualizerLoader.shown
-                    
                         scaledScreenWidth: bgRoot.screen.width / bgRoot.effectiveWallpaperScale
                         scaledScreenHeight: bgRoot.screen.height / bgRoot.effectiveWallpaperScale
                     }
