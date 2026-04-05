@@ -378,6 +378,7 @@ Scope {
                     shown: vizConfig?.enable && bgRoot.isBackgroundVisible && (!GlobalStates.screenLocked || vizConfig?.showWhenLocked)
 
                     sourceComponent: VisualizerWidget {
+                        anchors.fill: parent //fixed... 
                         points: root.visualizerPoints
                         primaryColor: Appearance.colors.colPrimary
                         shown: visualizerLoader.shown
