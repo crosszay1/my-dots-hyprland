@@ -41,7 +41,24 @@ MouseArea {
                 anchors.centerIn: parent
                 spacing: -4
 
+                MaterialSymbol {
+                    id: boltIcon
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    fill: 1
+                    text: {
+                        if (batteryProgress.value == 1) {
+                            return "check";
+                        } else if (root.isCharging) {
+                            return "bolt";
+                        } else {
+                            return Icons.getBatteryIcon(Battery.percentage * 100);
+                        }
+                    }
+                    iconSize: Appearance.font.pixelSize.normal
+                    animateChange: true
+                }
                 StyledText {
+                    visible: text.length <= 2
                     anchors.horizontalCenter: parent.horizontalCenter
                     font: batteryProgress.font
                     text: batteryProgress.text
