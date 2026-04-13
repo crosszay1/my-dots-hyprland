@@ -24,7 +24,12 @@ if status is-interactive # Commands to run in interactive sessions can go here
     alias ls 'eza --icons'
     alias pamcan pacman
     alias q 'qs -c ii'
-    
+    if test "$TERM" != "linux"
+        alias ls 'eza --icons'
+    end
+    if test $TERM = "xterm-kitty"
+        alias ssh 'kitten ssh'
+    end
 end
 
 zoxide init fish | source

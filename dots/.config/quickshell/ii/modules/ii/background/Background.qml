@@ -107,43 +107,44 @@ Scope {
             property var activeWorkspaceWithFullscreen: workspacesForMonitor.filter(workspace => ((workspace.toplevels.values.filter(window => window.wayland?.fullscreen)[0] != undefined) && workspace.active))[0]
             visible: GlobalStates.screenLocked || (!(activeWorkspaceWithFullscreen != undefined)) || !Config?.options.background.hideWhenFullscreen
 
-            property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
-            property list<var> relevantWindows: HyprlandData.windowList.filter(win => win.monitor == monitor?.id && (win.workspace?.id ?? win.workspace) >= 0).sort((a, b) => ((a.workspace?.id ?? a.workspace) - (b.workspace?.id ?? b.workspace)))
-            property int firstWorkspaceId: relevantWindows.length > 0 ? ((relevantWindows[0].workspace?.id ?? relevantWindows[0].workspace) || 1) : 1
-            property int lastWorkspaceId: relevantWindows.length > 0 ? ((relevantWindows[relevantWindows.length - 1].workspace?.id ?? relevantWindows[relevantWindows.length - 1].workspace) || 10) : 10
-            property int workspaceChunkSize: Config?.options.bar.workspaces.shown ?? 10
-            property int totalWorkspaces: Math.ceil(lastWorkspaceId / workspaceChunkSize) * workspaceChunkSize
-
-            property bool wallpaperIsVideo: Config.options.background.wallpaperPath.endsWith(".mp4") || Config.options.background.wallpaperPath.endsWith(".webm") || Config.options.background.wallpaperPath.endsWith(".mkv") || Config.options.background.wallpaperPath.endsWith(".avi") || Config.options.background.wallpaperPath.endsWith(".mov")
-            property string wallpaperPath: wallpaperIsVideo ? Config.options.background.thumbnailPath : Config.options.background.wallpaperPath
-            property bool wallpaperSafetyTriggered: {
-                const enabled = Config.options.workSafety.enable.wallpaper;
-                const sensitiveWallpaper = (CF.StringUtils.stringListContainsSubstring(wallpaperPath.toLowerCase(), Config.options.workSafety.triggerCondition.fileKeywords));
-                const sensitiveNetwork = (CF.StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords));
-                return enabled && sensitiveWallpaper && sensitiveNetwork;
-            }
-            readonly property real parallaxRation: 1.1
-            readonly property real additionalScaleFactor: Config.options.background.parallax.workspaceZoom
-            property real effectiveWallpaperScale: 1
-            property int wallpaperWidth: modelData.width
-            property int wallpaperHeight: modelData.height
-            property real scaledWallpaperWidth: wallpaperWidth * effectiveWallpaperScale
-            property real scaledWallpaperHeight: wallpaperHeight * effectiveWallpaperScale
-            property real parallaxTotalPixelsX: Math.max(0, scaledWallpaperWidth - screen.width)
-            property real parallaxTotalPixelsY: Math.max(0, scaledWallpaperHeight - screen.height)
-            readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
-
-            property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
-            property color dominantColor: Appearance.colors.colPrimary
-            property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
-            property color colText: {
-                if (wallpaperSafetyTriggered)
-                    return CF.ColorUtils.mix(Appearance.colors.colOnLayer0, Appearance.colors.colPrimary, 0.75);
-                return (GlobalStates.screenLocked && shouldBlur) ? Appearance.colors.colOnLayer0 : CF.ColorUtils.colorWithLightness(Appearance.colors.colPrimary, (dominantColorIsDark ? 0.8 : 0.12));
-            }
-            Behavior on colText {
-                animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
-            }
+        // Workspaces
+        property HyprlandMonitor monitor: Hyprland.monitorFor(modelData)
+        property list<var> relevantWindows: HyprlandData.windowList.filter(win => win.monitor == monitor?.id && (win.workspace?.id ?? win.workspace) >= 0).sort((a, b) => ((a.workspace?.id ?? a.workspace) - (b.workspace?.id ?? b.workspace)))
+        property int firstWorkspaceId: relevantWindows[0]?.workspace.id || 1
+        property int lastWorkspaceId: relevantWindows[relevantWindows.length - 1]?.workspace.id || 10
+        property int workspaceChunkSize: Config?.options.bar.workspaces.shown ?? 10
+        property int totalWorkspaces: Math.ceil(lastWorkspaceId / workspaceChunkSize) * workspaceChunkSize
+        // Wallpaper
+        property bool wallpaperIsVideo: Config.options.background.wallpaperPath.endsWith(".mp4") || Config.options.background.wallpaperPath.endsWith(".webm") || Config.options.background.wallpaperPath.endsWith(".mkv") || Config.options.background.wallpaperPath.endsWith(".avi") || Config.options.background.wallpaperPath.endsWith(".mov")
+        property string wallpaperPath: wallpaperIsVideo ? Config.options.background.thumbnailPath : Config.options.background.wallpaperPath
+        property bool wallpaperSafetyTriggered: {
+            const enabled = Config.options.workSafety.enable.wallpaper;
+            const sensitiveWallpaper = (CF.StringUtils.stringListContainsSubstring(wallpaperPath.toLowerCase(), Config.options.workSafety.triggerCondition.fileKeywords));
+            const sensitiveNetwork = (CF.StringUtils.stringListContainsSubstring(Network.networkName.toLowerCase(), Config.options.workSafety.triggerCondition.networkNameKeywords));
+            return enabled && sensitiveWallpaper && sensitiveNetwork;
+        }
+        readonly property real parallaxRation: 1.1
+        readonly property real additionalScaleFactor: Config.options.background.parallax.workspaceZoom
+        property real effectiveWallpaperScale: 1 // Some reasonable init value, to be updated
+        property int wallpaperWidth: modelData.width // Some reasonable init value, to be updated
+        property int wallpaperHeight: modelData.height // Some reasonable init value, to be updated
+        property real scaledWallpaperWidth: wallpaperWidth * effectiveWallpaperScale
+        property real scaledWallpaperHeight: wallpaperHeight * effectiveWallpaperScale
+        property real parallaxTotalPixelsX: Math.max(0, scaledWallpaperWidth - screen.width)
+        property real parallaxTotalPixelsY: Math.max(0, scaledWallpaperHeight - screen.height)
+        readonly property bool verticalParallax: (Config.options.background.parallax.autoVertical && wallpaperHeight > wallpaperWidth) || Config.options.background.parallax.vertical
+        // Colors
+        property bool shouldBlur: (GlobalStates.screenLocked && Config.options.lock.blur.enable)
+        property color dominantColor: Appearance.colors.colPrimary // Default, to be changed
+        property bool dominantColorIsDark: dominantColor.hslLightness < 0.5
+        property color colText: {
+            if (wallpaperSafetyTriggered)
+                return CF.ColorUtils.mix(Appearance.colors.colOnLayer0, Appearance.colors.colPrimary, 0.75);
+            return (GlobalStates.screenLocked && shouldBlur) ? Appearance.colors.colOnLayer0 : CF.ColorUtils.colorWithLightness(Appearance.colors.colPrimary, (dominantColorIsDark ? 0.8 : 0.12));
+        }
+        Behavior on colText {
+            animation: Appearance.animation.elementMoveFast.colorAnimation.createObject(this)
+        }
 
             screen: modelData
             exclusionMode: ExclusionMode.Ignore
@@ -185,11 +186,15 @@ Scope {
                         bgRoot.wallpaperWidth = width;
                         bgRoot.wallpaperHeight = height;
 
-                        const minSuitableScale = Math.max(screenWidth / width, screenHeight / height);
-                        bgRoot.effectiveWallpaperScale = minSuitableScale * bgRoot.additionalScaleFactor * bgRoot.parallaxRation;
-                    }
+                    // Perfect image; scale = 1
+                    // Small picture; scale > 1; will zoom in the picture
+                    // Big picture; scale < 1; will zoom out the picture
+                    // Choose max number so every side will fit
+                    const minSuitableScale = Math.max(screenWidth / width, screenHeight / height);
+                    bgRoot.effectiveWallpaperScale = minSuitableScale * bgRoot.additionalScaleFactor * bgRoot.parallaxRation;
                 }
             }
+        }
 
             Item {
                 anchors.fill: parent
@@ -230,18 +235,20 @@ Scope {
                         return Math.max(0, Math.min(1, usedFraction));
                     }
 
-                    x: {
-                        if (bgRoot.screen.width > bgRoot.scaledWallpaperWidth) {
-                            return (bgRoot.screen.width - bgRoot.scaledWallpaperWidth) / 2;
-                        }
-                        return -bgRoot.parallaxTotalPixelsX * usedFractionX;
+                x: {
+                    if (bgRoot.screen.width > bgRoot.scaledWallpaperWidth) {
+                        // Center the picture
+                        return (bgRoot.screen.width - bgRoot.scaledWallpaperWidth) / 2;
                     }
-                    y: {
-                        if (bgRoot.screen.height > bgRoot.scaledWallpaperHeight) {
-                            return (bgRoot.screen.height - bgRoot.scaledWallpaperHeight) / 2;
-                        }
-                        return -bgRoot.parallaxTotalPixelsY * usedFractionY;
+                    return - bgRoot.parallaxTotalPixelsX * usedFractionX;
+                }
+                y: {
+                    if (bgRoot.screen.height > bgRoot.scaledWallpaperHeight) {
+                        // Center the picture
+                        return (bgRoot.screen.height - bgRoot.scaledWallpaperHeight) / 2;
                     }
+                    return - bgRoot.parallaxTotalPixelsY * usedFractionY;
+                }
 
                     source: bgRoot.wallpaperSafetyTriggered ? "" : bgRoot.wallpaperPath
                     fillMode: Image.PreserveAspectCrop
@@ -291,20 +298,19 @@ Scope {
                     }
                 }
 
-                WidgetCanvas {
-                    id: widgetCanvas
-                    z: 1
-                    readonly property real parallaxFactor: {
-                        var f = Config.options.background.parallax.widgetsFactor;
-                        return f / Config.options.background.parallax.workspaceZoom;
-                    }
-                    readonly property real baseWallpaperOffsetX: (bgRoot.screen.width - bgRoot.scaledWallpaperWidth) / 2
-                    readonly property real baseWallpaperOffsetY: (bgRoot.screen.height - bgRoot.scaledWallpaperHeight) / 2
-                    readonly property real wallpaperTotalOffsetX: wallpaper.x - baseWallpaperOffsetX
-                    readonly property real wallpaperTotalOffsetY: wallpaper.y - baseWallpaperOffsetY
-                    readonly property bool locked: GlobalStates.screenLocked
-                    x: wallpaperTotalOffsetX * parallaxFactor * !locked
-                    y: wallpaperTotalOffsetY * parallaxFactor * !locked
+            WidgetCanvas {
+                id: widgetCanvas
+                readonly property real parallaxFactor: {
+                    var f = Config.options.background.parallax.widgetsFactor;
+                    return f / Config.options.background.parallax.workspaceZoom;
+                }
+                readonly property real baseWallpaperOffsetX: (bgRoot.screen.width - bgRoot.scaledWallpaperWidth) / 2
+                readonly property real baseWallpaperOffsetY: (bgRoot.screen.height - bgRoot.scaledWallpaperHeight) / 2
+                readonly property real wallpaperTotalOffsetX: wallpaper.x - baseWallpaperOffsetX
+                readonly property real wallpaperTotalOffsetY: wallpaper.y - baseWallpaperOffsetY
+                readonly property bool locked: GlobalStates.screenLocked
+                x: wallpaperTotalOffsetX * parallaxFactor * !locked
+                y: wallpaperTotalOffsetY * parallaxFactor * !locked
 
                     transitions: Transition {
                         PropertyAnimation {
