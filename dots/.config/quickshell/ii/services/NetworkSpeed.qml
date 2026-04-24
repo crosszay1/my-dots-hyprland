@@ -36,6 +36,7 @@ Singleton {
     property var _prevRx: ({})
     property var _prevTx: ({})
     property real _prevTime: 0
+    property bool _initialized: false
 
     function _formatSpeed(bytesPerSec) {
         if (bytesPerSec >= 1024 * 1024)
@@ -125,15 +126,21 @@ Singleton {
                 _prevRx[iface] = rx
                 _prevTx[iface] = tx
             }
-            // Reassign to trigger QML property change
+            // Reassign objects so QML detects the property change
+            // (in-place mutations of JS objects are not observed by QML bindings).
             _prevRx = Object.assign({}, _prevRx)
             _prevTx = Object.assign({}, _prevTx)
 
-            if (_prevTime > 0) {
-                downloadSpeed = totalRx / dt
-                uploadSpeed = totalTx / dt
-                _pushHistory(downloadSpeed, uploadSpeed)
+            // Skip speed recording on the very first tick when we are only
+            // capturing initial counter values (no diff available yet).
+            if (!_initialized) {
+                _initialized = true
+                return
             }
+
+            downloadSpeed = totalRx / dt
+            uploadSpeed = totalTx / dt
+            _pushHistory(downloadSpeed, uploadSpeed)
         }
     }
 
