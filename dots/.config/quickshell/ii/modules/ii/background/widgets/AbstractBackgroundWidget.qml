@@ -64,10 +64,13 @@ AbstractWidget {
         leastBusyRegionProc.wallpaperPath = root.wallpaperPath;
         leastBusyRegionProc.running = false;
         leastBusyRegionProc.running = true;
+        leastBusyRegionProc.capturedWallpaperScale = root.wallpaperScale;
     }
+    
     Process {
         id: leastBusyRegionProc
         property string wallpaperPath: root.wallpaperPath
+        property real capturedWallpaperScale: root.wallpaperScale
         // TODO: make these less arbitrary
         property int contentWidth: 300
         property int contentHeight: 300
@@ -93,8 +96,10 @@ AbstractWidget {
                 const parsedContent = JSON.parse(output);
                 root.dominantColor = parsedContent.dominant_color || Appearance.colors.colPrimary;
                 if (root.placementStrategy === "free") return;
-                root.targetX = parsedContent.center_x * root.wallpaperScale - root.width / 2;
-                root.targetY  = parsedContent.center_y * root.wallpaperScale - root.height / 2;
+                const rawX = parsedContent.center_x * leastBusyRegionProc.capturedWallpaperScale - root.width / 2;
+                const rawY = parsedContent.center_y * leastBusyRegionProc.capturedWallpaperScale - root.height / 2;
+                root.targetX = Math.max(0, Math.min(rawX, root.scaledScreenWidth - root.width));
+                root.targetY = Math.max(0, Math.min(rawY, root.scaledScreenHeight - root.height));
             }
         }
     }
