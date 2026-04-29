@@ -59,6 +59,10 @@ Item {
             }
         }
 
+        NetworkMonitor {
+            Layout.fillWidth: true
+        }
+
         Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
