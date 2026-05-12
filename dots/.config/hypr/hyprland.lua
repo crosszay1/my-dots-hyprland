@@ -2,11 +2,15 @@
 -- You wanna add your stuff in files in `custom`
 
 local function load_custom(module)
-    local loaded = pcall(require, "custom/" .. module)
-    if loaded then
+    local customDir = os.getenv("HOME") .. "/.config/hypr/custom/"
+    local luaPath = customDir .. module .. ".lua"
+    local luaFile = io.open(luaPath, "r")
+    if luaFile then
+        luaFile:close()
+        require("custom/" .. module)
         return
     end
-    hl.exec_cmd("hyprctl keyword source \"$HOME/.config/hypr/custom/" .. module .. ".conf\"")
+    hl.exec_cmd("hyprctl keyword source \"" .. customDir .. module .. ".conf\"")
 end
 
 -- Environment variables --

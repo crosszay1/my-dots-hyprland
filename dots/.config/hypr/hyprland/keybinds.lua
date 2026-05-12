@@ -1,6 +1,11 @@
 require("hyprland.variables")
-if not pcall(require, "custom.variables") then
- hl.exec_cmd("hyprctl keyword source \"$HOME/.config/hypr/custom/variables.conf\"")
+local customVariablesLua = os.getenv("HOME") .. "/.config/hypr/custom/variables.lua"
+local customVariablesFile = io.open(customVariablesLua, "r")
+if customVariablesFile then
+ customVariablesFile:close()
+ require("custom.variables")
+else
+ hl.exec_cmd("hyprctl keyword source \"" .. os.getenv("HOME") .. "/.config/hypr/custom/variables.conf\"")
 end
 
 local qsScripts = "$HOME/.config/quickshell/$qsConfig/scripts"
