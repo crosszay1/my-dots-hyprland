@@ -49,7 +49,7 @@ hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_SINK@ togg
 hl.bind("ALT + XF86AudioMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_SOURCE@ toggle"), {locked = true} )
 hl.bind("XF86AudioMicMute", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_SOURCE@ toggle"), {locked = true} )
 hl.bind("SUPER + ALT + M", hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_SOURCE@ toggle"), {locked = true, description = "Toggle mic"} )
-hl.bind("CTRL + SUPER + T", hl.dsp.global("quickshell:wallpaperSelectorToggle"), {description = "Toggle wallpaper selector"} )
+hl.bind("SUPER + COMMA", hl.dsp.global("quickshell:wallpaperSelectorToggle"), {description = "Toggle wallpaper selector"} )
 hl.bind("CTRL + SUPER + ALT + T", hl.dsp.global("quickshell:wallpaperSelectorRandom"), {description = "Select random wallpaper"} )
 hl.bind("CTRL + SUPER + T", hl.dsp.exec_cmd(qsIsAlive.." || "..qsScripts.."/colors/switchwall.sh") )
 hl.bind("CTRL + SUPER + R", hl.dsp.exec_cmd("killall ydotool qs quickshell; qs -c $qsConfig &"), {description = "Restart widgets"} )
