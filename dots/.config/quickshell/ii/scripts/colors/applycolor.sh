@@ -41,10 +41,11 @@ apply_kitty() {
     sed -i "s/${colorlist[$i]} #/${colorvalues[$i]#\#}/g" "$STATE_DIR"/user/generated/terminal/kitty-theme.conf
   done
   # Reload
-  if ! pgrep -x kitty >/dev/null; then
+  kitty_pids="$(pgrep -x kitty || true)"
+  if [ -z "$kitty_pids" ]; then
     return
   fi
-  pgrep -x kitty | xargs -r kill -SIGUSR1
+  printf '%s\n' "$kitty_pids" | xargs -r kill -SIGUSR1
 }
 
 apply_anyterm() {
