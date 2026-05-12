@@ -10,5 +10,5 @@ The easiest way to install this repo is to run the command below
 ~~~
 cd ~ && git clone https://github.com/crosszay1/my-dots-hyprland.git && cd my-dots-hyprland && ./setup install
 ~~~
-## Importiant
+## Important
 I use an arch-based distro, and your setup may look different from mine if it is not.

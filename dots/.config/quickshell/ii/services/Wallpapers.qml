@@ -34,7 +34,6 @@ Singleton {
     signal thumbnailGeneratedFile(filePath: string)
 
     function load () {} // For forcing initialization
-
     property list<string> videoExtensions: [
         "mp4", "mkv", "webm", "avi", "mov", "m4v", "ogv"
     ]
@@ -56,19 +55,12 @@ Singleton {
     }
     
     function openFallbackPicker(darkMode = Appearance.m3colors.darkmode) {
-        applyProc.exec([
-            Directories.wallpaperSwitchScriptPath,
-            "--mode", (darkMode ? "dark" : "light")
-        ])
+        Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--mode", darkMode ? "dark" : "light"]);
     }
 
     function apply(path, darkMode = Appearance.m3colors.darkmode) {
-        if (!path || path.length === 0) return
-        applyProc.exec([
-            Directories.wallpaperSwitchScriptPath,
-            "--image", path,
-            "--mode", (darkMode ? "dark" : "light")
-        ])
+        if (!path || path.length === 0) return;
+        Quickshell.execDetached([Directories.wallpaperSwitchScriptPath, "--mode", darkMode ? "dark" : "light", "--image", path]);
         root.changed()
     }
 

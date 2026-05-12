@@ -40,6 +40,12 @@ apply_kitty() {
   for i in "${!colorlist[@]}"; do
     sed -i "s/${colorlist[$i]} #/${colorvalues[$i]#\#}/g" "$STATE_DIR"/user/generated/terminal/kitty-theme.conf
   done
+  # Reload
+  kitty_pids="$(pgrep -x kitty || true)"
+  if [ -z "$kitty_pids" ]; then
+    return
+  fi
+  printf '%s\n' "$kitty_pids" | xargs -r kill -SIGUSR1
 }
 
 apply_anyterm() {
@@ -68,13 +74,8 @@ apply_anyterm() {
 }
 
 apply_term() {
-  apply_kitty
-  apply_anyterm
-}
-
-apply_qt() {
-  sh "$CONFIG_DIR/scripts/kvantum/materialQT.sh"          # generate kvantum theme
-  python "$CONFIG_DIR/scripts/kvantum/changeAdwColors.py" # apply config colors
+  apply_anyterm &
+  apply_kitty &
 }
 
 # Check if terminal theming is enabled in config
