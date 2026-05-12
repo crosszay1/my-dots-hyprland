@@ -1,5 +1,7 @@
 require("hyprland.variables")
-require("custom.variables")
+if not pcall(require, "custom.variables") then
+ hl.exec_cmd("hyprctl keyword source \"$HOME/.config/hypr/custom/variables.conf\"")
+end
 
 local qsScripts = "$HOME/.config/quickshell/$qsConfig/scripts"
 local hyprScripts = "$HOME/.config/hypr/hyprland/scripts"

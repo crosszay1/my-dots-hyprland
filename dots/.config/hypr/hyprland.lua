@@ -1,9 +1,17 @@
 -- This file sources other files in `hyprland` and `custom` folders
 -- You wanna add your stuff in files in `custom`
 
+local function load_custom(module)
+    local loaded = pcall(require, "custom/" .. module)
+    if loaded then
+        return
+    end
+    hl.exec_cmd("hyprctl keyword source \"$HOME/.config/hypr/custom/" .. module .. ".conf\"")
+end
+
 -- Environment variables --
 require("hyprland/env")
-require("custom/env")
+load_custom("env")
 
 -- Defaults --
 require("hyprland/execs")
@@ -13,10 +21,10 @@ require("hyprland/colors")
 require("hyprland/keybinds")
 
 -- Custom --
-require("custom/execs")
-require("custom/general")
-require("custom/rules")
-require("custom/keybinds")
+load_custom("execs")
+load_custom("general")
+load_custom("rules")
+load_custom("keybinds")
 
 -- nwg-displays support: re-add the files if it updates later
 -- require("workspaces")
